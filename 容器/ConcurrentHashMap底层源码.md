@@ -219,7 +219,9 @@ public ConcurrentHashMap(int initialCapacity,
 
 向concurrenthashmap中添加元素时，需要保证添加的key和value均不为null;
 
+- 为什么里面使用synchronized:
 
+  请大家试想一下,锁已经被细化到这种程度了,那么出现并发争抢的可能性还高吗?还有就是,哪怕出现争抢了,只要线程可以在30到50次自旋里拿到锁,那么Synchronized就不会升级为重量级锁,而等待的线程也就不用被挂起,我们也就少了挂起和唤醒这个上下文切换的过程开销.
 
 ```java
  final V putVal(K key, V value, boolean onlyIfAbsent) {
@@ -240,10 +242,10 @@ public ConcurrentHashMap(int initialCapacity,
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
-                synchronized (f) {//对桶的头节点加锁，某个线程在插入过程中，不允许其他线程对桶中元素进行修改
+                synchronized (f) {//对桶的头节点加锁，某个线程在插入过程中，不允许其他线程对桶中元素进行修改，
                     if (tabAt(tab, i) == f) { //这里判断是因为为了防止添加元素后变成了一颗树
                         if (fh >= 0) { //是普通的链表结构
-                            binCount = 1;
+                            binCount = 1; 
                             for (Node<K,V> e = f;; ++binCount) { //循环遍历链表
                                 K ek;
                                 //如果key相等则直接替换value，然后break;
